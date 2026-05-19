@@ -62,6 +62,14 @@ html, body {
 .submit-btn { padding:10px 24px; border-radius:8px; font-family:'Noto Sans KR',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all .2s; border:none; margin-left:14px; }
 .submit-btn:disabled { background:rgba(255,255,255,.15); color:rgba(255,255,255,.3); cursor:not-allowed; }
 .submit-btn:not(:disabled) { background:linear-gradient(135deg,#27AE60,#2ECC71); color:var(--white); box-shadow:0 4px 16px rgba(39,174,96,.4); }
+.fs-btn {
+  width:38px; height:38px; border-radius:8px;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+  color:var(--white); font-size:1.1rem; cursor:pointer;
+  transition:all .2s; display:flex; align-items:center; justify-content:center;
+  margin-right:8px;
+}
+.fs-btn:hover { background:rgba(255,255,255,.25); }
 
 /* ══ 진행률 바 ══ */
 .progress-bar-wrap { height:4px; background:var(--gray-light); }
@@ -288,6 +296,7 @@ html, body {
   <div class="timer-wrap">
     <span>⏱</span>
     <div class="timer" id="timer">50:00</div>
+    <button class="fs-btn" id="fsBtn" onclick="toggleFullscreen()" title="전체화면">⛶</button>
     <button class="submit-btn" id="submitBtn" disabled onclick="openConfirm()">제출</button>
   </div>
 </div>
@@ -574,6 +583,24 @@ function playAudio(k,btn){
   curAudio.play().catch(()=>console.warn('오디오 없음:',k));
   curAudio.onended=()=>{btn.classList.remove('playing');curAudio=null;curPlayKey=null;if(playCount[k]>=2){btn.classList.add('done');btn.disabled=true;}};
 }
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+    document.getElementById('fsBtn').textContent='✕';
+    document.getElementById('fsBtn').title='전체화면 종료';
+  } else {
+    document.exitFullscreen().catch(()=>{});
+    document.getElementById('fsBtn').textContent='⛶';
+    document.getElementById('fsBtn').title='전체화면';
+  }
+}
+// 전체화면 상태 변경 감지 (ESC로 나갔을 때 버튼 복원)
+document.addEventListener('fullscreenchange',()=>{
+  const btn=document.getElementById('fsBtn');
+  if(!btn)return;
+  btn.textContent = document.fullscreenElement ? '✕' : '⛶';
+});
+
 function startTimer(){
   timerInterval=setInterval(()=>{
     secondsLeft--;
@@ -587,6 +614,8 @@ function startTimer(){
 function startExam(){
   document.getElementById('startOverlay').style.display='none';
   examStarted=true; startTimer(); showQ('R',0);
+  // 자동 전체화면
+  document.documentElement.requestFullscreen().catch(()=>{});
 }
 function openConfirm(){
   document.getElementById('answeredCount').textContent=Object.keys(answers.R).length+Object.keys(answers.L).length;
