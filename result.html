@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KLC EPS-TOPIK 시험 결과</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Sans+Khmer:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-dark:  #1A3A6B;
+  --blue-main:  #1B4FD8;
+  --blue-light: #4A7BF7;
+  --blue-bg:    #EBF0FF;
+  --green:      #1A7A3C;
+  --green-bg:   #E8F5ED;
+  --green-main: #27AE60;
+  --red:        #C0392B;
+  --red-bg:     #FDECEA;
+  --orange:     #E8730A;
+  --orange-bg:  #FFF3E8;
+  --gray-dark:  #2D3748;
+  --gray-mid:   #718096;
+  --gray-light: #E2E8F0;
+  --gray-bg:    #F4F6F9;
+  --white:      #FFFFFF;
+  --border:     #D1D9E6;
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html, body {
+  width:100vw; height:100vh; overflow:hidden;
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--gray-bg); color:var(--gray-dark);
+  font-size:16px;
+}
+
+/* ══ 헤더 ══ */
+.header {
+  height:7vh; background:var(--blue-dark);
+  display:flex; align-items:center; padding:0 2.5vw;
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+.klc-logo { font-size:1.2rem; font-weight:900; color:var(--white); letter-spacing:.1em; }
+.klc-logo span { color:#7FB3FF; }
+.header-title { flex:1; text-align:center; }
+.ht-main { font-size:1.1rem; font-weight:700; color:var(--white); }
+.ht-sub  { font-size:0.78rem; color:rgba(255,255,255,.5); }
+
+/* ══ 메인 컨테이너 ══ */
+.main {
+  height:93vh;
+  display:flex; flex-direction:column;
+  padding:2vh 3vw; gap:1.5vh; overflow:hidden;
+}
+
+/* ══ 상단: 점수 요약 ══ */
+.score-summary {
+  display:flex; gap:2vw; align-items:stretch; flex-shrink:0;
+}
+
+/* 총점 카드 */
+.total-card {
+  background:var(--white); border-radius:18px; padding:2.5vh 3vw;
+  border:1.5px solid var(--border);
+  box-shadow:0 4px 24px rgba(0,0,0,.07);
+  display:flex; align-items:center; gap:2.5vw;
+  flex:1.2;
+}
+.score-circle {
+  width:110px; height:110px; border-radius:50%; flex-shrink:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-weight:900; position:relative;
+}
+.score-circle.pass  { background:linear-gradient(135deg,#27AE60,#2ECC71); color:var(--white); box-shadow:0 6px 24px rgba(39,174,96,.4); }
+.score-circle.fail  { background:linear-gradient(135deg,#E74C3C,#C0392B); color:var(--white); box-shadow:0 6px 24px rgba(192,57,43,.4); }
+.score-num  { font-size:2.4rem; line-height:1; }
+.score-denom{ font-size:0.85rem; opacity:.85; margin-top:2px; }
+.score-info { flex:1; }
+.score-label { font-size:0.82rem; font-weight:600; color:var(--gray-mid); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+.score-big   { font-size:1.8rem; font-weight:900; color:var(--blue-dark); line-height:1; margin-bottom:8px; }
+.pass-badge  {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 16px; border-radius:20px; font-size:0.9rem; font-weight:700;
+}
+.pass-badge.pass { background:var(--green-bg); color:var(--green); border:1px solid rgba(39,174,96,.3); }
+.pass-badge.fail { background:var(--red-bg);   color:var(--red);   border:1px solid rgba(192,57,43,.3); }
+.pass-note { font-size:0.78rem; color:var(--gray-mid); margin-top:6px; }
+
+/* 읽기/듣기 분리 카드 */
+.sub-card {
+  background:var(--white); border-radius:18px; padding:2.5vh 2.5vw;
+  border:1.5px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.07);
+  flex:1; display:flex; flex-direction:column; justify-content:center; gap:1.2vh;
+}
+.sub-card-title { font-size:0.82rem; font-weight:700; letter-spacing:.1em; color:var(--gray-mid); text-transform:uppercase; }
+.sub-score-row  { display:flex; align-items:center; gap:14px; }
+.sub-score-val  { font-size:1.8rem; font-weight:900; color:var(--blue-dark); min-width:80px; }
+.sub-bar-wrap   { flex:1; height:12px; background:var(--gray-light); border-radius:6px; overflow:hidden; }
+.sub-bar        { height:100%; border-radius:6px; transition:width 1s ease; }
+.sub-bar.read   { background:linear-gradient(90deg,var(--blue-main),var(--blue-light)); }
+.sub-bar.listen { background:linear-gradient(90deg,#8E44AD,#9B59B6); }
+.sub-correct    { font-size:0.82rem; color:var(--gray-mid); }
+
+/* ══ 하단: 문항별 정오표 ══ */
+.answer-table-wrap {
+  flex:1; min-height:0;
+  background:var(--white); border-radius:18px; padding:2vh 2.5vw;
+  border:1.5px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.07);
+  display:flex; flex-direction:column;
+}
+.table-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:1.2vh; flex-shrink:0;
+}
+.table-title { font-size:1rem; font-weight:700; color:var(--blue-dark); }
+.legend {
+  display:flex; gap:16px; align-items:center; font-size:0.82rem; color:var(--gray-mid);
+}
+.legend-item { display:flex; align-items:center; gap:5px; }
+.dot-o { width:14px; height:14px; border-radius:50%; background:var(--green-main); }
+.dot-x { width:14px; height:14px; border-radius:50%; background:var(--red); }
+
+/* 정오표 그리드 */
+.answer-grid {
+  flex:1; min-height:0;
+  display:grid; grid-template-columns:1fr 1fr; gap:1.5vw; overflow:hidden;
+}
+.answer-section { display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+.answer-section-title {
+  font-size:0.78rem; font-weight:700; letter-spacing:.1em; color:var(--gray-mid);
+  text-transform:uppercase; padding-bottom:4px;
+  border-bottom:2px solid var(--blue-main); flex-shrink:0;
+}
+.answer-items {
+  display:grid; grid-template-columns:repeat(10,1fr); gap:5px;
+  flex:1; align-content:start;
+}
+.answer-item {
+  border-radius:10px; padding:6px 4px;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  border:1.5px solid var(--border);
+  font-size:0.72rem;
+}
+.answer-item.correct { background:var(--green-bg); border-color:rgba(39,174,96,.3); }
+.answer-item.wrong   { background:var(--red-bg);   border-color:rgba(192,57,43,.3); }
+.ai-num    { font-weight:700; color:var(--gray-mid); font-size:0.7rem; }
+.ai-result { font-size:1rem; line-height:1; }
+.ai-result.o { color:var(--green-main); font-weight:900; }
+.ai-result.x { color:var(--red); font-weight:900; }
+.ai-ans    { font-size:0.65rem; color:var(--gray-mid); }
+
+/* ══ 하단 버튼 ══ */
+.bottom-btns {
+  display:flex; gap:1.5vw; justify-content:center; flex-shrink:0;
+  padding-top:0.5vh;
+}
+.btn-retry {
+  padding:12px 40px; border-radius:12px; font-family:'Noto Sans KR',sans-serif;
+  font-size:1rem; font-weight:700; cursor:pointer; transition:all .2s;
+  border:1.5px solid var(--border); background:var(--white); color:var(--gray-dark);
+}
+.btn-retry:hover { border-color:var(--blue-main); color:var(--blue-main); background:var(--blue-bg); }
+.btn-home {
+  padding:12px 40px; border-radius:12px; font-family:'Noto Sans KR',sans-serif;
+  font-size:1rem; font-weight:700; cursor:pointer; transition:all .2s;
+  background:linear-gradient(135deg,var(--blue-main),var(--blue-light));
+  color:var(--white); border:none;
+  box-shadow:0 4px 16px rgba(27,79,216,.35);
+}
+.btn-home:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(27,79,216,.45); }
+
+/* 애니메이션 */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.score-summary  { animation:fadeUp .5s ease both; }
+.answer-table-wrap { animation:fadeUp .5s ease .15s both; }
+.bottom-btns    { animation:fadeUp .5s ease .25s both; }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="klc-logo"><span>KLC</span></div>
+  <div class="header-title">
+    <div class="ht-main">EPS-TOPIK 모의고사 — 시험 결과</div>
+    <div class="ht-sub">고용허가제 한국어능력시험</div>
+  </div>
+  <div style="min-width:80px;"></div>
+</div>
+
+<!-- 메인 -->
+<div class="main">
+
+  <!-- 점수 요약 -->
+  <div class="score-summary">
+
+    <!-- 총점 -->
+    <div class="total-card">
+      <div class="score-circle" id="scoreCircle">
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-denom">/ 100점</div>
+      </div>
+      <div class="score-info">
+        <div class="score-label">총점</div>
+        <div class="score-big" id="scoreBig">— 점</div>
+        <div class="pass-note">읽기 + 듣기 합산 점수입니다.</div>
+      </div>
+    </div>
+
+    <!-- 읽기 점수 -->
+    <div class="sub-card">
+      <div class="sub-card-title">📖 읽기</div>
+      <div class="sub-score-row">
+        <div class="sub-score-val" id="readScore">—</div>
+        <div>
+          <div class="sub-bar-wrap"><div class="sub-bar read" id="readBar" style="width:0%"></div></div>
+          <div class="sub-correct" id="readCorrect">— / 20 문항</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 듣기 점수 -->
+    <div class="sub-card">
+      <div class="sub-card-title">👂 듣기</div>
+      <div class="sub-score-row">
+        <div class="sub-score-val" id="listenScore">—</div>
+        <div>
+          <div class="sub-bar-wrap"><div class="sub-bar listen" id="listenBar" style="width:0%"></div></div>
+          <div class="sub-correct" id="listenCorrect">— / 20 문항</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 문항별 정오표 -->
+  <div class="answer-table-wrap">
+    <div class="table-header">
+      <div class="table-title">문항별 정오표</div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot-o"></div> 정답</div>
+        <div class="legend-item"><div class="dot-x"></div> 오답</div>
+      </div>
+    </div>
+    <div class="answer-grid">
+      <div class="answer-section">
+        <div class="answer-section-title">읽기 (1~20번)</div>
+        <div class="answer-items" id="readItems"></div>
+      </div>
+      <div class="answer-section">
+        <div class="answer-section-title">듣기 (21~40번)</div>
+        <div class="answer-items" id="listenItems"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 버튼 -->
+  <div class="bottom-btns">
+    <button class="btn-retry" onclick="retryExam()">↺ 다시 풀기</button>
+    <button class="btn-home"  onclick="goHome()">🏠 메인으로</button>
+  </div>
+
+</div>
+
+<script>
+/* sessionStorage에서 데이터 로드 */
+const raw = sessionStorage.getItem('examAnswers');
+const keyRaw = sessionStorage.getItem('answerKey');
+
+if(!raw || !keyRaw){
+  // 데이터 없으면 메인으로
+  alert('결과 데이터가 없습니다. 시험을 먼저 진행해 주세요.');
+  window.location.href='index.html';
+}
+
+const submitted = JSON.parse(raw);   // {R:{1:4,2:1,...}, L:{1:1,...}}
+const KEY       = JSON.parse(keyRaw);// {R:{1:4,...}, L:{1:1,...}}
+
+/* 채점 */
+let readCorrect=0, listenCorrect=0;
+
+function grade(type){
+  const items=[];
+  for(let i=1;i<=20;i++){
+    const my = submitted[type]?.[i];
+    const correct = KEY[type]?.[i];
+    const isCorrect = (my === correct);
+    if(type==='R' && isCorrect) readCorrect++;
+    if(type==='L' && isCorrect) listenCorrect++;
+    items.push({qNum:i, type, my, correct, isCorrect});
+  }
+  return items;
+}
+
+const readItems   = grade('R');
+const listenItems = grade('L');
+
+const readScore   = readCorrect   * 2.5;
+const listenScore = listenCorrect * 2.5;
+const totalScore  = readScore + listenScore;
+const isPassed    = totalScore >= 80;
+
+/* 점수 표시 */
+const circle = document.getElementById('scoreCircle');
+circle.style.background = 'linear-gradient(135deg, var(--blue-main), var(--blue-light))';
+circle.style.color = 'white';
+circle.style.boxShadow = '0 6px 24px rgba(27,79,216,.4)';
+document.getElementById('scoreNum').textContent  = totalScore;
+document.getElementById('scoreBig').textContent  = totalScore + '점';
+
+// 읽기
+document.getElementById('readScore').textContent   = readScore + '점';
+document.getElementById('readCorrect').textContent = readCorrect + ' / 20 문항 정답';
+setTimeout(()=>{
+  document.getElementById('readBar').style.width = (readScore/50*100)+'%';
+  document.getElementById('listenBar').style.width = (listenScore/50*100)+'%';
+},100);
+
+// 듣기
+document.getElementById('listenScore').textContent   = listenScore + '점';
+document.getElementById('listenCorrect').textContent = listenCorrect + ' / 20 문항 정답';
+
+/* 정오표 렌더링 */
+function renderItems(items, containerId, isListen){
+  const wrap = document.getElementById(containerId);
+  items.forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'answer-item ' + (item.isCorrect?'correct':'wrong');
+    const displayNum = isListen ? item.qNum+20 : item.qNum;
+    const myStr   = item.my      ? '①②③④'[item.my-1]      : '—';
+    const corrStr = item.correct  ? '①②③④'[item.correct-1] : '—';
+    div.innerHTML = `
+      <div class="ai-num">${displayNum}</div>
+      <div class="ai-result ${item.isCorrect?'o':'x'}">${item.isCorrect?'O':'X'}</div>
+      <div class="ai-ans">정: ${corrStr}</div>
+      <div class="ai-ans">내: ${myStr}</div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+renderItems(readItems,   'readItems',   false);
+renderItems(listenItems, 'listenItems', true);
+
+/* 버튼 */
+function retryExam(){
+  // 세트 번호 sessionStorage에서 가져오기 (없으면 501 기본)
+  const set = sessionStorage.getItem('examSet') || '501';
+  sessionStorage.removeItem('examAnswers');
+  sessionStorage.removeItem('answerKey');
+  window.location.href = set + 'exam.html';
+}
+function goHome(){
+  sessionStorage.removeItem('examAnswers');
+  sessionStorage.removeItem('answerKey');
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

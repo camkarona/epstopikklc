@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KLC EPS-TOPIK 501 시험</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-dark:  #1A3A6B;
+  --blue-main:  #1B4FD8;
+  --blue-light: #4A7BF7;
+  --blue-bg:    #EBF0FF;
+  --orange:     #E8730A;
+  --orange-bg:  #FFF3E8;
+  --gray-dark:  #2D3748;
+  --gray-mid:   #718096;
+  --gray-light: #E2E8F0;
+  --gray-bg:    #F4F6F9;
+  --white:      #FFFFFF;
+  --border:     #D1D9E6;
+  --header-h:   7vh;
+  --numbtn-h:   8vh;
+  --content-h:  calc(100vh - var(--header-h) - var(--numbtn-h) - 3px);
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html, body {
+  width:100vw; height:100vh; overflow:hidden;
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--gray-bg); color:var(--gray-dark);
+  font-size:18px;
+}
+
+/* ══ 팝업 ══ */
+.overlay { position:fixed; inset:0; z-index:1000; background:rgba(10,20,50,0.65); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; }
+.popup { background:var(--white); border-radius:20px; padding:40px 48px; width:min(540px,90vw); box-shadow:0 24px 80px rgba(0,0,0,.25); text-align:center; animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes popIn { from{opacity:0;transform:scale(.85) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.popup-badge { display:inline-block; background:var(--blue-bg); color:var(--blue-main); font-size:0.85rem; font-weight:700; letter-spacing:.12em; padding:5px 18px; border-radius:20px; margin-bottom:16px; }
+.popup h2 { font-size:1.7rem; font-weight:900; color:var(--blue-dark); margin-bottom:8px; }
+.popup-sub { font-size:1rem; color:var(--gray-mid); margin-bottom:24px; }
+.popup-divider { width:100%; height:1px; background:var(--gray-light); margin-bottom:20px; }
+.popup-info { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; text-align:left; }
+.pi-item { background:var(--gray-bg); border:1px solid var(--gray-light); border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+.pi-icon { font-size:1.5rem; }
+.pi-label { font-size:0.82rem; color:var(--gray-mid); font-weight:500; display:block; margin-bottom:3px; }
+.pi-value { font-size:1rem; font-weight:700; color:var(--gray-dark); }
+.popup-warn { background:var(--orange-bg); border:1px solid rgba(232,115,10,.25); border-radius:12px; padding:13px 16px; font-size:0.95rem; color:var(--orange); text-align:left; margin-bottom:24px; display:flex; gap:10px; align-items:flex-start; }
+.start-popup-btn { width:100%; padding:15px; background:linear-gradient(135deg,var(--blue-main),var(--blue-light)); color:var(--white); border:none; border-radius:12px; font-family:'Noto Sans KR',sans-serif; font-size:1.1rem; font-weight:700; letter-spacing:.06em; cursor:pointer; transition:all .2s; box-shadow:0 6px 24px rgba(27,79,216,.35); }
+.start-popup-btn:hover { transform:translateY(-2px); }
+
+/* ══ 헤더 ══ */
+.header { height:var(--header-h); background:var(--blue-dark); display:flex; align-items:center; padding:0 2vw; box-shadow:0 2px 8px rgba(0,0,0,.2); z-index:10; position:relative; }
+.klc-logo { font-size:1.2rem; font-weight:900; color:var(--white); letter-spacing:.1em; }
+.klc-logo span { color:#7FB3FF; }
+.header-title { flex:1; text-align:center; }
+.ht-main { font-size:1.1rem; font-weight:700; color:var(--white); letter-spacing:.04em; }
+.ht-sub  { font-size:0.8rem; color:rgba(255,255,255,.5); letter-spacing:.08em; }
+.timer-wrap { display:flex; align-items:center; gap:8px; }
+.timer { font-size:1.5rem; font-weight:900; color:var(--white); letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+.timer.warning { color:#FF6B6B; animation:blink 1s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.55} }
+.submit-btn { padding:10px 24px; border-radius:8px; font-family:'Noto Sans KR',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all .2s; border:none; margin-left:14px; }
+.submit-btn:disabled { background:rgba(255,255,255,.15); color:rgba(255,255,255,.3); cursor:not-allowed; }
+.submit-btn:not(:disabled) { background:linear-gradient(135deg,#27AE60,#2ECC71); color:var(--white); box-shadow:0 4px 16px rgba(39,174,96,.4); }
+
+/* ══ 진행률 바 ══ */
+.progress-bar-wrap { height:4px; background:var(--gray-light); }
+.progress-bar { height:100%; background:linear-gradient(90deg,var(--blue-main),var(--blue-light)); transition:width .3s; }
+
+/* ══ 번호버튼 행 ══ */
+.num-row-wrap { height:var(--numbtn-h); display:flex; background:var(--white); border-bottom:2px solid var(--border); }
+.num-row { flex:1; display:flex; align-items:center; padding:0 1vw; overflow:hidden; }
+.num-row.read-row { border-right:2px solid var(--border); }
+.num-row-label { font-size:0.8rem; font-weight:700; letter-spacing:.1em; color:var(--gray-mid); white-space:nowrap; margin-right:8px; text-transform:uppercase; flex-shrink:0; }
+.num-btns-wrap { display:flex; flex:1; justify-content:space-between; overflow:hidden; }
+.num-btn {
+  flex:1; min-width:0; margin:0 1.5px;
+  height:clamp(30px,4vh,42px);
+  border-radius:6px; border:1.5px solid var(--border); background:var(--white);
+  font-family:'Noto Sans KR',sans-serif; font-size:clamp(0.65rem,0.95vw,0.85rem); font-weight:600;
+  color:var(--gray-mid); cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.num-btn:hover { border-color:var(--blue-main); color:var(--blue-main); }
+.num-btn.answered { background:var(--blue-main); border-color:var(--blue-main); color:var(--white); }
+.num-btn.active { outline:3px solid var(--orange); outline-offset:1px; }
+
+/* ══ 콘텐츠 영역: 화면 꽉 ══ */
+.content-area {
+  height:var(--content-h);
+  display:flex; align-items:stretch;
+  padding:1.5vh 1.5vw 6vh 1.5vw;
+  position:relative; overflow:hidden;
+  gap:0;
+}
+
+/* 패널 뱃지 */
+.panel-badge {
+  position:absolute; top:1.2vh; left:50%; transform:translateX(-50%);
+  background:var(--blue-dark); color:var(--white);
+  font-size:0.82rem; font-weight:700; letter-spacing:.12em;
+  padding:3px 18px; border-radius:20px; opacity:.7; z-index:5;
+}
+
+/* ══ 문제 카드 ══ */
+.q-card {
+  width:100%;
+  background:var(--white); border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:2.5vh 3vw 2.5vh 3vw;
+  box-shadow:0 4px 32px rgba(0,0,0,.07);
+  animation:fadeInQ .2s ease both;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+}
+@keyframes fadeInQ { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+.q-section { font-size:0.85rem; font-weight:700; letter-spacing:.08em; color:var(--blue-main); background:var(--blue-bg); padding:3px 12px; border-radius:6px; margin-bottom:10px; display:inline-block; flex-shrink:0; }
+
+.q-header { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; flex-shrink:0; }
+.q-num { width:40px; height:40px; flex-shrink:0; background:var(--blue-dark); color:var(--white); border-radius:10px; font-size:1rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.q-text { font-size:1.15rem; line-height:1.55; color:var(--gray-dark); padding-top:5px; font-weight:500; }
+
+/* ══ 좌우 분할 바디 ══ */
+.q-body {
+  display:flex; gap:0; align-items:stretch;
+  flex:1; min-height:0;
+}
+.q-divider { width:1.5px; background:var(--gray-light); flex-shrink:0; margin:0 2.5vw; border-radius:2px; }
+.q-left  { flex:1.1; display:flex; flex-direction:column; gap:12px; min-width:0; min-height:0; overflow:hidden; }
+.q-right { flex:1; display:flex; flex-direction:column; gap:10px; min-width:0; justify-content:space-evenly; overflow-y:auto; }
+.q-right::-webkit-scrollbar { width:4px; }
+.q-right::-webkit-scrollbar-thumb { background:var(--gray-light); border-radius:2px; }
+.q-body.no-left .q-divider { display:none; }
+.q-body.no-left .q-left   { display:none; }
+.q-body.no-left .q-right  { flex:1; justify-content:center; max-width:640px; margin:0 auto; width:100%; }
+
+/* 지문 박스 */
+.passage-box { background:#F0F4FA; border:1px solid #C8D4EC; border-radius:14px; padding:20px 24px; font-size:1.08rem; line-height:1.9; color:var(--gray-dark); flex:1; }
+.p-title { font-size:1.08rem; font-weight:700; color:var(--blue-dark); margin-bottom:8px; }
+
+/* 읽기 이미지 */
+.img-read-wrap { flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; min-height:0; }
+.img-read { width:100%; height:100%; max-width:100%; object-fit:contain; border-radius:14px; display:block; border:1px solid var(--gray-light); }
+.img-ph { background:#EEF1F8; border:2px dashed #BCC8DF; border-radius:14px; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; font-size:1rem; color:#96A8C0; font-weight:500; }
+
+/* 듣기 버튼 */
+.listen-area { display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
+.listen-btn {
+  display:flex; align-items:center; gap:10px; padding:11px 22px; border-radius:10px;
+  border:1.5px solid rgba(27,79,216,.3); background:var(--blue-bg); color:var(--blue-main);
+  font-family:'Noto Sans KR',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:all .2s; width:fit-content; min-width:160px;
+}
+.listen-btn:hover:not(:disabled) { background:var(--blue-main); color:var(--white); border-color:var(--blue-main); }
+.listen-btn.playing { background:var(--orange-bg); border-color:var(--orange); color:var(--orange); animation:pp 1s ease-in-out infinite; }
+@keyframes pp { 0%,100%{box-shadow:0 0 0 0 rgba(232,115,10,.3)} 50%{box-shadow:0 0 0 8px rgba(232,115,10,.06)} }
+.listen-btn.done { background:#F4F4F4; border-color:#CCC; color:#AAA; cursor:not-allowed; }
+.listen-count { font-size:0.88rem; opacity:.85; }
+
+/* ══ 선택지 ══ */
+.choice-btn {
+  display:flex; align-items:center; gap:16px;
+  padding:0 20px; border:1.5px solid var(--border); border-radius:14px;
+  background:var(--white); cursor:pointer; transition:all .15s;
+  text-align:left; font-family:'Noto Sans KR',sans-serif;
+  width:100%; flex:1; min-height:52px;
+}
+.choice-btn:hover { border-color:var(--blue-light); background:var(--blue-bg); }
+.choice-btn.selected { border-color:var(--blue-main); background:var(--blue-bg); box-shadow:0 0 0 2px var(--blue-main); }
+.choice-num { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:700; color:var(--gray-mid); flex-shrink:0; transition:all .15s; }
+.choice-btn.selected .choice-num { background:var(--blue-main); border-color:var(--blue-main); color:var(--white); }
+.choice-text { font-size:1.08rem; color:var(--gray-dark); line-height:1.45; }
+.choice-btn.selected .choice-text { color:var(--blue-dark); font-weight:600; }
+
+/* ══ audio_choice ══ */
+.audio-choice-btn {
+  display:flex; align-items:center; gap:14px;
+  padding:0 20px; border:1.5px solid var(--border); border-radius:14px;
+  background:var(--white); cursor:pointer; transition:all .15s;
+  font-family:'Noto Sans KR',sans-serif; width:100%; flex:1; min-height:52px;
+}
+.audio-choice-btn:hover { border-color:var(--blue-light); background:var(--blue-bg); }
+.audio-choice-btn.selected { border-color:var(--blue-main); background:var(--blue-bg); box-shadow:0 0 0 2px var(--blue-main); }
+.audio-choice-btn .ac-num { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:700; color:var(--gray-mid); flex-shrink:0; transition:all .15s; }
+.audio-choice-btn.selected .ac-num { background:var(--blue-main); border-color:var(--blue-main); color:var(--white); }
+.audio-choice-btn .ac-listen { display:flex; align-items:center; gap:8px; padding:8px 18px; border-radius:8px; border:1.5px solid rgba(27,79,216,.3); background:var(--blue-bg); color:var(--blue-main); font-size:0.95rem; font-weight:700; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.audio-choice-btn.selected .ac-listen { background:rgba(27,79,216,.15); }
+.audio-choice-btn .ac-listen.playing { background:var(--orange-bg); border-color:var(--orange); color:var(--orange); }
+.audio-choice-btn .ac-listen.done { background:#F4F4F4; border-color:#CCC; color:#AAA; pointer-events:none; }
+
+/* ══ 듣기 그림선택지 — 오른쪽 2×2 그리드, 화면 꽉 ══ */
+.img-choices-grid2x2 {
+  display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
+  gap:8px; flex:1;
+}
+.img-choice-btn2 {
+  border:2.5px solid var(--border); border-radius:12px; background:var(--white);
+  cursor:pointer; transition:all .15s; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; max-height:220px;
+}
+.img-choice-btn2:hover { border-color:var(--blue-light); background:var(--blue-bg); }
+.img-choice-btn2.selected { border-color:var(--blue-main); box-shadow:0 0 0 2.5px var(--blue-main); background:var(--blue-bg); }
+.img-choice-btn2 .img-choice-label {
+  position:absolute; top:6px; left:6px; width:26px; height:26px;
+  background:var(--blue-dark); color:var(--white); border-radius:6px;
+  font-size:0.82rem; font-weight:700; display:flex; align-items:center; justify-content:center; z-index:1;
+}
+.img-choice-btn2.selected .img-choice-label { background:var(--blue-main); }
+.img-choice-ph2 { width:100%; height:100%; min-height:60px; background:#EEF1F8; display:flex; align-items:center; justify-content:center; font-size:0.82rem; color:#96A8C0; border-radius:8px; }
+.img-choice-btn2 img { width:100%; height:100%; object-fit:contain; display:block; padding:6px; }
+
+/* img_l 타입: 왼쪽은 듣기버튼만 (좁게), 오른쪽 그리드 넓게 */
+.q-body.img-l-type .q-left { flex:0 0 180px; }
+.q-body.img-l-type .q-right { flex:1; overflow-y:auto; }
+
+/* ══ PREV / NEXT 버튼 ══ */
+.nav-arrows { position:absolute; bottom:1.8vh; right:2vw; display:flex; gap:10px; align-items:center; }
+.nav-btn {
+  height:44px; border-radius:10px; border:1.5px solid var(--border);
+  background:var(--white); color:var(--gray-dark);
+  font-family:'Noto Sans KR',sans-serif; font-size:0.92rem; font-weight:700;
+  cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center;
+  gap:6px; padding:0 20px;
+}
+.nav-btn:hover:not(:disabled) { border-color:var(--blue-main); color:var(--blue-main); background:var(--blue-bg); }
+.nav-btn:disabled { opacity:.3; cursor:not-allowed; }
+.nav-btn.next-btn { background:var(--blue-main); color:var(--white); border-color:var(--blue-main); box-shadow:0 4px 14px rgba(27,79,216,.35); }
+.nav-btn.next-btn:hover:not(:disabled) { background:var(--blue-light); border-color:var(--blue-light); }
+.nav-btn.next-btn:disabled { background:var(--gray-light); border-color:var(--gray-light); color:var(--gray-mid); box-shadow:none; }
+
+/* ══ 제출 확인 팝업 ══ */
+.confirm-overlay { position:fixed; inset:0; z-index:900; background:rgba(10,20,50,.55); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; }
+.confirm-overlay.show { display:flex; }
+.confirm-popup { background:var(--white); border-radius:18px; padding:36px 44px; width:min(440px,88vw); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:popIn .25s ease both; }
+.confirm-popup h3 { font-size:1.3rem; font-weight:900; color:var(--blue-dark); margin-bottom:12px; }
+.confirm-popup p  { font-size:1rem; color:var(--gray-mid); margin-bottom:26px; line-height:1.6; }
+.confirm-btns { display:flex; gap:12px; }
+.btn-cancel { flex:1; padding:14px; border:1.5px solid var(--border); border-radius:12px; background:var(--white); font-family:'Noto Sans KR',sans-serif; font-size:1rem; font-weight:600; color:var(--gray-mid); cursor:pointer; transition:all .2s; }
+.btn-cancel:hover { background:var(--gray-bg); }
+.btn-confirm { flex:1; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg,#27AE60,#2ECC71); font-family:'Noto Sans KR',sans-serif; font-size:1rem; font-weight:700; color:var(--white); cursor:pointer; transition:all .2s; box-shadow:0 4px 16px rgba(39,174,96,.35); }
+.btn-confirm:hover { transform:translateY(-1px); }
+</style>
+</head>
+<body>
+
+<!-- 시작 팝업 -->
+<div class="overlay" id="startOverlay">
+  <div class="popup">
+    <div class="popup-badge">EPS-TOPIK 501</div>
+    <h2>시험을 시작합니다</h2>
+    <p class="popup-sub">아래 내용을 확인하고 시험을 시작하세요.</p>
+    <div class="popup-divider"></div>
+    <div class="popup-info">
+      <div class="pi-item"><span class="pi-icon">⏱</span><div><span class="pi-label">시험 시간</span><span class="pi-value">50분</span></div></div>
+      <div class="pi-item"><span class="pi-icon">📝</span><div><span class="pi-label">총 문항</span><span class="pi-value">40문항</span></div></div>
+      <div class="pi-item"><span class="pi-icon">📖</span><div><span class="pi-label">읽기</span><span class="pi-value">20문항</span></div></div>
+      <div class="pi-item"><span class="pi-icon">👂</span><div><span class="pi-label">듣기</span><span class="pi-value">20문항</span></div></div>
+    </div>
+    <div class="popup-warn">
+      <span>🎧</span>
+      <div><strong>듣기 파일은 문항당 최대 2회까지만 재생됩니다.</strong><br>3번째 클릭부터는 재생이 차단되니 신중하게 들으세요.</div>
+    </div>
+    <button class="start-popup-btn" onclick="startExam()">▶ &nbsp;시험 시작하기</button>
+  </div>
+</div>
+
+<!-- 제출 확인 팝업 -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-popup">
+    <h3>✅ 시험을 제출하시겠습니까?</h3>
+    <p>제출 후에는 답안을 수정할 수 없습니다.<br>현재 <strong id="answeredCount">0</strong>문항 / 40문항 완료</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">취소</button>
+      <button class="btn-confirm" onclick="submitExam()">제출하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="klc-logo"><span>KLC</span></div>
+  <div class="header-title">
+    <div class="ht-main">EPS-TOPIK 모의고사 &nbsp;|&nbsp; 501번</div>
+    <div class="ht-sub">고용허가제 한국어능력시험</div>
+  </div>
+  <div class="timer-wrap">
+    <span>⏱</span>
+    <div class="timer" id="timer">50:00</div>
+    <button class="submit-btn" id="submitBtn" disabled onclick="openConfirm()">제출</button>
+  </div>
+</div>
+<div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+
+<!-- 번호버튼 -->
+<div class="num-row-wrap">
+  <div class="num-row read-row">
+    <span class="num-row-label">읽기</span>
+    <div class="num-btns-wrap" id="readNumBtns"></div>
+  </div>
+  <div class="num-row listen-row">
+    <span class="num-row-label">듣기</span>
+    <div class="num-btns-wrap" id="listenNumBtns"></div>
+  </div>
+</div>
+
+<!-- 콘텐츠 -->
+<div class="content-area" id="contentArea">
+  <div class="panel-badge" id="panelBadge">읽기</div>
+  <div id="qArea" style="width:100%;display:flex;align-items:stretch;"></div>
+  <div class="nav-arrows">
+    <button class="nav-btn" id="navPrev" onclick="navigate(-1)">◀ PREV</button>
+    <button class="nav-btn next-btn" id="navNext" onclick="navigate(1)">NEXT ▶</button>
+  </div>
+</div>
+
+<script>
+const QS={
+  R:[
+    {num:1,  sec:'[1~4] 그림을 보고 맞는 단어나 문장을 고르십시오.', txt:'다음 그림을 보고 맞는 단어나 문장을 고르십시오.', type:'img_r', img:'images/501/Q1.jpg',  ch:['볼펜입니다.','가위입니다.','안경입니다.','가방입니다.']},
+    {num:2,  sec:'[1~4] 그림을 보고 맞는 단어나 문장을 고르십시오.', txt:'다음 그림을 보고 맞는 단어나 문장을 고르십시오.', type:'img_r', img:'images/501/Q2.jpg',  ch:['지게차입니다.','굴착기입니다.','트랙터입니다.','경운기입니다.']},
+    {num:3,  sec:'[1~4] 그림을 보고 맞는 단어나 문장을 고르십시오.', txt:'다음 그림을 보고 맞는 단어나 문장을 고르십시오.', type:'img_r', img:'images/501/Q3.jpg',  ch:['책을 읽고 있습니다.','밥을 먹고 있습니다.','친구를 만나고 있습니다.','피아노를 치고 있습니다.']},
+    {num:4,  sec:'[1~4] 그림을 보고 맞는 단어나 문장을 고르십시오.', txt:'다음 그림을 보고 맞는 단어나 문장을 고르십시오.', type:'img_r', img:'images/501/Q4.jpg',  ch:['전기가 흐르니까 조심하세요.','떨어질 수 있으니까 조심하세요.','바닥이 미끄러우니까 조심하세요.','불이 붙을 수 있으니까 조심하세요.']},
+    {num:5,  sec:'[5~6] 밑줄 친 부분이 맞는 것을 고르십시오.', txt:'다음 중 밑줄 친 부분이 맞는 것은 무엇입니까?', type:'text', ch:['집<u>을</u> 작아요.','딸기<u>가</u> 먹어요.','회사<u>에</u> 다녀요.','겨울<u>에서</u> 추워요.']},
+    {num:6,  sec:'[5~6] 밑줄 친 부분이 맞는 것을 고르십시오.', txt:'다음 중 밑줄 친 부분이 맞는 것은 무엇입니까?', type:'text', ch:['퇴근할 때 문을 <u>달으세요</u>.','친구<u>한테서</u> 선물을 받았어요.','심심하면 한국 노래를 <u>듣어요</u>.','오늘 시내에서 많이 <u>걷었어요</u>.']},
+    {num:7,  sec:'[7~10] 다음 글을 읽고 물음에 답하십시오.', txt:'이 병원이 문을 여는 시간은 언제입니까?', type:'passage', pass:'<div class="p-title">🏥 튼튼치과</div>임플란트 / 잇몸 질환 / 성인 교정<br>원장 <strong>김 미 소</strong><br>경기도 부천시 소사로 213번길 &nbsp;·&nbsp; 032-346-2840<br><strong>진료 시간 : 오전 9시 ~ 오후 7시</strong>', ch:['부천시입니다.','김미소입니다.','튼튼치과입니다.','오전 아홉 시입니다.']},
+    {num:8,  sec:'[7~10] 다음 글을 읽고 물음에 답하십시오.', txt:'다음 단어와 관계있는 것은 무엇입니까?', type:'passage', pass:'<div style="text-align:center;font-size:1.5rem;font-weight:700;padding:12px 0">복장</div>', ch:['컴퓨터','작업복','비빔밥','기차표']},
+    {num:9,  sec:'[7~10] 다음 글을 읽고 물음에 답하십시오.', txt:'다음 단어와 관계있는 것은 무엇입니까?', type:'passage', pass:'<div style="text-align:center;font-size:1.5rem;font-weight:700;padding:12px 0">작업장</div>', ch:['근로자가 일하는 곳이에요.','근로자가 거주하는 곳이에요.','근로자가 운동하는 곳이에요.','근로자가 상담하는 곳이에요.']},
+    {num:10, sec:'[7~10] 다음 글을 읽고 물음에 답하십시오.', txt:'한국의 수산물 수입 현황에 대한 설명으로 맞는 것은 무엇입니까?', type:'img_r', img:'images/501/Q10.jpg', ch:['한국은 수산물을 중국에서 가장 많이 수입합니다.','한국이 수입하는 수산물 중 베트남산은 5% 미만입니다.','수산물 수입 국가 중 2위는 노르웨이입니다.','한국은 미국보다 러시아에서 수산물을 더 많이 수입합니다.']},
+    {num:11, sec:'[11~16] 빈칸에 들어갈 알맞은 것을 고르십시오.', txt:'빈칸에 들어갈 알맞은 것을 고르십시오.', type:'passage', pass:'<div style="text-align:center;font-size:1.1rem;padding:10px 0">지급 방법 : <strong>___________</strong></div>', ch:['가족 모임','생일 선물','출근 시간','통장 입금']},
+    {num:12, sec:'[11~16] 빈칸에 들어갈 알맞은 것을 고르십시오.', txt:'빈칸에 들어갈 알맞은 것을 고르십시오.', type:'passage', pass:'한국어를 배우고 싶지만 학원에 갈 시간이 없습니다. 그래서 퇴근 후에 인터넷 강의를 <strong>___________</strong> 한국어를 공부하고 있습니다.', ch:['듣느라고','들으려고','들으면서','듣자마자']},
+    {num:13, sec:'[11~16] 빈칸에 들어갈 알맞은 것을 고르십시오.', txt:'빈칸에 들어갈 알맞은 것을 고르십시오.', type:'passage', pass:'오늘은 다른 날보다 길이 많이 막힙니다. <strong>___________</strong> 가지 않으면 회사에 늦을 것 같습니다.', ch:['조심하게','조심해서','서두르게','서둘러서']},
+    {num:14, sec:'[11~16] 빈칸에 들어갈 알맞은 것을 고르십시오.', txt:'빈칸에 들어갈 알맞은 것을 고르십시오.', type:'passage', pass:'오늘은 날씨가 너무 덥습니다. 집에 오자마자 선풍기를 <strong>___________</strong> 시원한 물을 마셨습니다.', ch:['틀면','틀고','틀려면','틀려고']},
+    {num:15, sec:'[11~16] 빈칸에 들어갈 알맞은 것을 고르십시오.', txt:'빈칸에 들어갈 알맞은 것을 고르십시오.', type:'passage', pass:'못에 찔렸을 때는 상처가 가벼워도 바로 소독을 해야 합니다. 그리고 병원에 가서 진료를 받고 주사를 <strong>___________</strong>.', ch:['맞는 것이 좋습니다.','놓는 것이 좋습니다.','맞지 않도록 합니다.','놓지 않도록 합니다.']},
+    {num:16, sec:'[11~16] 빈칸에 들어갈 알맞은 것을 고르십시오.', txt:'빈칸에 들어갈 알맞은 것을 고르십시오.', type:'passage', pass:'어두운 곳에서 작업할 때는 가시성이 높은 <strong>___________</strong>. 이것을 입으면 멀리서도 잘 보여 사고를 막을 수 있습니다.', ch:['반사 조끼를 착용해야 합니다.','보호 장갑을 구매해야 합니다.','비상 계단을 이용해야 합니다.','환기 장치를 작동해야 합니다.']},
+    {num:17, sec:'[17] 다음 설명에 알맞은 어휘를 고르십시오.', txt:'다음 설명에 알맞은 어휘를 고르십시오.', type:'passage', pass:'손에 쥐고 철사를 끊거나 구부릴 때 쓰는 도구입니다. 전선이나 작은 부품을 잡을 때도 사용합니다.', ch:['토치','펜치','쇠톱','망치']},
+    {num:18, sec:'[18] 다음 글을 읽고 내용과 같은 것을 고르십시오.', txt:'다음 글을 읽고 내용과 같은 것을 고르십시오.', type:'img_r', img:'images/501/Q18.jpg', ch:['사내 휴게실의 출입문 비밀번호는 따로 없습니다.','회사 직원은 누구나 휴게실을 이용할 수 있습니다.','휴게실 이용 후에는 문을 열어 두고 나가야 합니다.','점심 도시락을 싸 가서 휴게실에서 먹을 수 있습니다.']},
+    {num:19, sec:'[19] 다음 그림과 관계있는 내용은 무엇입니까?', txt:'다음 그림과 관계있는 내용은 무엇입니까?', type:'img_r', img:'images/501/Q19.jpg', ch:['저울 – 철사를 펴요.','저울 – 무게를 재요.','줄자 – 무게를 재요.','줄자 – 철사를 펴요.']},
+    {num:20, sec:'[20] 다음 단어와 의미가 비슷한 말은 무엇입니까?', txt:'다음 단어와 의미가 비슷한 말은 무엇입니까?', type:'passage', pass:'<div style="text-align:center;font-size:1.5rem;font-weight:700;padding:12px 0">혼합하다</div>', ch:['담다','묶다','섞다','쌓다']},
+  ],
+  L:[
+    {num:21, sec:'[21~22] 들은 것을 고르십시오.', txt:'들은 내용과 맞는 것을 고르십시오.', audio:['21-T'], type:'text', ch:['가구','기구','가게','거기']},
+    {num:22, sec:'[21~22] 들은 것을 고르십시오.', txt:'들은 내용과 맞는 것을 고르십시오.', audio:['22-T'], type:'text', ch:['적재','직장','적정','정전']},
+    {num:23, sec:'[23~28] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['23_T'], type:'img_l', imgs:['images/501/Q23-1.jpg','images/501/Q23-2.jpg','images/501/Q23-3.jpg','images/501/Q23-4.jpg']},
+    {num:24, sec:'[23~28] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['24-T'], type:'img_l', imgs:['images/501/Q24-1.jpg','images/501/Q24-2.jpg','images/501/Q24-3.jpg','images/501/Q24-4.jpg']},
+    {num:25, sec:'[23~28] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['25-T'], type:'img_l', imgs:['images/501/Q25-1.jpg','images/501/Q25-2.jpg','images/501/Q25-3.jpg','images/501/Q25-4.jpg']},
+    {num:26, sec:'[23~28] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['26-T'], type:'img_l', imgs:['images/501/Q26-1.jpg','images/501/Q26-2.jpg','images/501/Q26-3.jpg','images/501/Q26-4.jpg']},
+    {num:27, sec:'[23~28] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['27-T'], type:'img_l', imgs:['images/501/Q27-1.jpg','images/501/Q27-2.jpg','images/501/Q27-3.jpg','images/501/Q27-4.jpg']},
+    {num:28, sec:'[23~28] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['28-T'], type:'img_l', imgs:['images/501/Q28-1.jpg','images/501/Q28-2.jpg','images/501/Q28-3.jpg','images/501/Q28-4.jpg']},
+    {num:29, sec:'[29~33] 알맞은 대답을 고르십시오.', txt:'알맞은 대답을 고르십시오.', audio:['29-T'], type:'audio_choice', ach:['29-A-1','29-A-2','29-A-3','29-A-4']},
+    {num:30, sec:'[29~33] 알맞은 대답을 고르십시오.', txt:'알맞은 대답을 고르십시오.', audio:['30-T'], type:'audio_choice', ach:['30-A-1','30-A-2','30-A-3','30-A-4']},
+    {num:31, sec:'[29~33] 알맞은 대답을 고르십시오.', txt:'알맞은 대답을 고르십시오.', audio:['31-T'], type:'audio_choice', ach:['31-A-1','31-A-2','31-A-3','31-A-4']},
+    {num:32, sec:'[29~33] 알맞은 대답을 고르십시오.', txt:'알맞은 대답을 고르십시오.', audio:['32-T'], type:'audio_choice', ach:['32-A-1','32-A-2','32-A-3','32-A-4']},
+    {num:33, sec:'[29~33] 이어지는 말을 고르십시오.', txt:'다음을 듣고 이어지는 말을 고르십시오.', audio:['33-T'], type:'audio_choice', ach:['33-A-1','33-A-2','33-A-3','33-A-4']},
+    {num:34, sec:'[34~36] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['34-T'], type:'img_l', imgs:['images/501/Q34-1.jpg','images/501/Q34-2.jpg','images/501/Q34-3.jpg','images/501/Q34-4.jpg']},
+    {num:35, sec:'[34~36] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['35-T'], type:'img_l', imgs:['images/501/Q35-1.jpg','images/501/Q35-2.jpg','images/501/Q35-3.jpg','images/501/Q35-4.jpg']},
+    {num:36, sec:'[34~36] 들은 내용과 관계있는 그림을 고르십시오.', txt:'들은 내용과 관계있는 그림을 고르십시오.', audio:['36-T'], type:'img_l', imgs:['images/501/Q36-1.jpg','images/501/Q36-2.jpg','images/501/Q36-3.jpg','images/501/Q36-4.jpg']},
+    {num:37, sec:'[37~40] 알맞은 대답을 고르십시오.', txt:'안경은 어디에 있습니까?', audio:['37-T'], type:'audio_choice', img:'images/501/Q37.jpg', ach:['37-A-1','37-A-2','37-A-3','37-A-4']},
+    {num:38, sec:'[37~40] 알맞은 대답을 고르십시오.', txt:'남자가 이곳에 온 이유는 무엇입니까?', audio:['38-T'], type:'text', ch:['노트북 수리를 맡기려고','지하철 표를 구입하려고','잃어버린 가방을 찾으려고','내려야 할 역을 물어보려고']},
+    {num:39, sec:'[37~40] 알맞은 대답을 고르십시오.', txt:'점심시간 전까지 포장 작업을 끝내야 하는 이유는 무엇입니까?', audio:['39-T'], type:'text', ch:['작업 시간이 많이 걸려서','포장할 물건이 너무 많아서','오후에 라벨을 붙여야 해서','오후에 제품을 출고해야 해서']},
+    {num:40, sec:'[37~40] 알맞은 대답을 고르십시오.', txt:'다음 중 들은 내용과 같은 것은 무엇입니까?', audio:['40-T'], type:'text', ch:['남자는 여자와 같은 공장에서 일합니다.','남자는 아직 공장장님을 못 만났습니다.','남자는 새 회사 사람들이 마음에 듭니다.','남자는 이전 공장에서와 같은 일을 합니다.']},
+  ]
+};
+
+const ANSWER_KEY={
+  R:{1:4,2:1,3:4,4:3,5:3,6:2,7:4,8:2,9:1,10:4,11:4,12:3,13:4,14:2,15:1,16:1,17:2,18:2,19:2,20:3},
+  L:{1:1,2:1,3:1,4:2,5:1,6:1,7:3,8:1,9:4,10:4,11:4,12:1,13:4,14:1,15:2,16:3,17:4,18:3,19:4,20:3}
+};
+
+const answers={R:{},L:{}};
+const playCount={};
+let curAudio=null,curPlayKey=null;
+let timerInterval=null,secondsLeft=50*60,examStarted=false;
+let curType='R',curIdx=0;
+const C='①②③④';
+
+function buildNumBtns(){
+  ['R','L'].forEach(t=>{
+    const wrap=document.getElementById(t==='R'?'readNumBtns':'listenNumBtns');
+    for(let i=0;i<20;i++){
+      const b=document.createElement('button');
+      b.className='num-btn'; b.id='nb-'+t+i;
+      b.textContent = t==='R' ? i+1 : i+21;
+      b.onclick=()=>showQ(t,i); wrap.appendChild(b);
+    }
+  });
+}
+
+function showQ(type,idx){
+  document.querySelectorAll('.num-btn.active').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nb-'+type+idx);
+  if(nb)nb.classList.add('active');
+  curType=type; curIdx=idx;
+  document.getElementById('panelBadge').textContent=type==='R'?'읽기':'듣기';
+  renderQ(type,idx);
+  updateNavBtns();
+}
+
+function renderQ(t,idx){
+  const q=QS[t][idx];
+  const area=document.getElementById('qArea');
+
+  // 왼쪽 패널이 있는 타입
+  // img_l: 왼쪽=듣기버튼, 오른쪽=2×2 그림
+  // img_r, passage: 왼쪽=이미지/지문, 오른쪽=선택지
+  // audio_choice+img: 왼쪽=그림, 오른쪽=듣기버튼+선택지
+  // text, audio_choice(no img): 왼쪽 없음
+  const hasLeft = q.type==='passage' || q.type==='img_r' || q.type==='img_l' || (q.type==='audio_choice' && q.img);
+
+  let h=`<div class="q-card" id="qc">`;
+  h+=`<div class="q-section">${q.sec}</div>`;
+  h+=`<div class="q-header"><div class="q-num">${q.num}</div><div class="q-text">${q.txt}</div></div>`;
+  h+=`<div class="q-body ${hasLeft?'has-left':'no-left'}${q.type==='img_l'?' img-l-type':''}">`;
+
+  /* ── 왼쪽 ── */
+  if(hasLeft){
+    h+=`<div class="q-left">`;
+
+    if(q.type==='passage'){
+      // 듣기버튼(있는 경우) + 지문
+      if(q.audio){ h+=listenBtns(q.audio); }
+      h+=`<div class="passage-box">${q.pass}</div>`;
+    }
+
+    if(q.type==='img_r'){
+      // 읽기 이미지
+      h+=`<div class="img-ph" id="iph-${t}${idx}">🖼 이미지 준비중</div>`;
+      loadImg(q.img,`iph-${t}${idx}`);
+    }
+
+    if(q.type==='img_l'){
+      // 듣기버튼만 왼쪽에
+      h+=listenBtns(q.audio);
+    }
+
+    if(q.type==='audio_choice' && q.img){
+      // 37번: 그림을 왼쪽에 크게
+      h+=`<div class="img-ph" id="iph-ac-${idx}" style="flex:1;">🖼 이미지 준비중</div>`;
+      loadImg(q.img,`iph-ac-${idx}`);
+    }
+
+    h+=`</div><div class="q-divider"></div>`;
+  }
+
+  /* ── 오른쪽 ── */
+  h+=`<div class="q-right">`;
+
+  if(q.type==='img_l'){
+    // 그림 4개를 2×2 그리드로 오른쪽에 꽉 차게
+    h+=`<div class="img-choices-grid2x2">`;
+    for(let i=0;i<4;i++){
+      h+=`<button class="img-choice-btn2" onclick="selectAnswer('${t}',${idx+1},${i+1},this)">
+        <div class="img-choice-label">${C[i]}</div>
+        <div class="img-choice-ph2" id="ic-${t}${idx}-${i}">준비중</div>
+      </button>`;
+      if(q.imgs&&q.imgs[i])loadImgChoice2(q.imgs[i],`ic-${t}${idx}-${i}`);
+    }
+    h+=`</div>`;
+  }
+
+  if(q.type==='text'||q.type==='passage'||q.type==='img_r'){
+    if(q.type==='text'&&q.audio){ h+=`<div style="margin-bottom:14px;">`+listenBtns(q.audio)+`</div>`; }
+    q.ch.forEach((c,ci)=>{
+      h+=`<button class="choice-btn" onclick="selectAnswer('${t}',${idx+1},${ci+1},this)"><span class="choice-num">${C[ci]}</span><span class="choice-text">${c}</span></button>`;
+    });
+  }
+
+  if(q.type==='audio_choice'){
+    // 문제 듣기 버튼
+    h+=`<div style="margin-bottom:14px;">${listenBtns(q.audio,'▶ 문제 듣기')}</div>`;
+    // 선택지 = 듣기버튼
+    q.ach.forEach((k,ci)=>{
+      const c=playCount[k]||0,done=c>=2;
+      h+=`<button class="audio-choice-btn" id="acb-${t}${idx}-${ci}" onclick="selectAnswerAC('${t}',${idx+1},${ci+1},this)">
+        <span class="ac-num">${C[ci]}</span>
+        <span class="ac-listen${done?' done':''}" id="lb-${k}" onclick="event.stopPropagation();playAudio('${k}',this)">▶ 듣기 <span class="listen-count" id="lc-${k}">(${c}/2)</span></span>
+      </button>`;
+    });
+  }
+
+  h+=`</div></div></div>`;
+  area.innerHTML=h;
+  restoreSelection(t,idx);
+}
+
+/* 듣기버튼 HTML 생성 헬퍼 */
+function listenBtns(audioArr, label){
+  let h=`<div class="listen-area">`;
+  audioArr.forEach(k=>{
+    const c=playCount[k]||0,done=c>=2;
+    const lbl = label || '▶ 듣기';
+    h+=`<button class="listen-btn${done?' done':''}" id="lb-${k}" ${done?'disabled':''} onclick="playAudio('${k}',this)">${lbl} <span class="listen-count" id="lc-${k}">(${c}/2)</span></button>`;
+  });
+  h+=`</div>`;
+  return h;
+}
+
+function loadImg(src,id){
+  const im=new Image();
+  im.onload=()=>{
+    const el=document.getElementById(id);
+    if(el) el.outerHTML=`<div class="img-read-wrap"><img src="${src}" class="img-read" alt=""></div>`;
+  };
+  im.src=src;
+}
+function loadImgChoice2(src,id){
+  const im=new Image();
+  im.onload=()=>{
+    const el=document.getElementById(id);
+    if(el) el.outerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:contain;display:block;padding:8px;" alt="">`;
+  };
+  im.src=src;
+}
+function loadImgChoice(src,id){
+  const im=new Image();
+  im.onload=()=>{
+    const el=document.getElementById(id);
+    if(el) el.outerHTML=`<img src="${src}" style="flex:1;max-height:120px;object-fit:contain;border-radius:8px;display:block;" alt="">`;
+  };
+  im.src=src;
+}
+
+function selectAnswer(t,qNum,choice,btn){
+  if(!examStarted)return;
+  answers[t][qNum]=choice;
+  document.querySelectorAll('#qc .choice-btn,#qc .img-choice-btn2').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const nb=document.getElementById('nb-'+t+(qNum-1));if(nb)nb.classList.add('answered');
+  updateProgress();
+}
+function selectAnswerAC(t,qNum,choice,btn){
+  if(!examStarted)return;
+  answers[t][qNum]=choice;
+  document.querySelectorAll('#qc .audio-choice-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const nb=document.getElementById('nb-'+t+(qNum-1));if(nb)nb.classList.add('answered');
+  updateProgress();
+}
+function restoreSelection(t,idx){
+  const saved=answers[t][idx+1]; if(saved===undefined)return;
+  const q=QS[t][idx];
+  let btns;
+  if(q.type==='audio_choice') btns=document.querySelectorAll('#qc .audio-choice-btn');
+  else if(q.type==='img_l')   btns=document.querySelectorAll('#qc .img-choice-btn2');
+  else                         btns=document.querySelectorAll('#qc .choice-btn');
+  if(btns[saved-1])btns[saved-1].classList.add('selected');
+}
+function updateProgress(){
+  const tot=Object.keys(answers.R).length+Object.keys(answers.L).length;
+  document.getElementById('progressBar').style.width=(tot/40*100)+'%';
+  document.getElementById('answeredCount').textContent=tot;
+  document.getElementById('submitBtn').disabled=tot<40;
+}
+function navigate(dir){
+  let ni=curIdx+dir,nt=curType;
+  if(ni<0){if(curType==='L'){nt='R';ni=19;}else return;}
+  else if(ni>19){if(curType==='R'){nt='L';ni=0;}else return;}
+  showQ(nt,ni);
+}
+function updateNavBtns(){
+  document.getElementById('navPrev').disabled=curType==='R'&&curIdx===0;
+  document.getElementById('navNext').disabled=curType==='L'&&curIdx===19;
+}
+function playAudio(k,btn){
+  if(!examStarted)return;
+  const c=playCount[k]||0; if(c>=2)return;
+  if(curAudio){curAudio.pause();curAudio.currentTime=0;}
+  if(curPlayKey&&curPlayKey!==k){const pb=document.getElementById('lb-'+curPlayKey);if(pb)pb.classList.remove('playing');}
+  playCount[k]=c+1;
+  const lc=document.getElementById('lc-'+k); if(lc)lc.textContent=`(${playCount[k]}/2)`;
+  btn.classList.add('playing'); curPlayKey=k;
+  curAudio=new Audio('audio/501/'+k+'.mp3');
+  curAudio.play().catch(()=>console.warn('오디오 없음:',k));
+  curAudio.onended=()=>{btn.classList.remove('playing');curAudio=null;curPlayKey=null;if(playCount[k]>=2){btn.classList.add('done');btn.disabled=true;}};
+}
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    secondsLeft--;
+    const m=Math.floor(secondsLeft/60),s=secondsLeft%60;
+    const el=document.getElementById('timer');
+    el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    if(secondsLeft<=600)el.classList.add('warning');
+    if(secondsLeft<=0){clearInterval(timerInterval);submitExam();}
+  },1000);
+}
+function startExam(){
+  document.getElementById('startOverlay').style.display='none';
+  examStarted=true; startTimer(); showQ('R',0);
+}
+function openConfirm(){
+  document.getElementById('answeredCount').textContent=Object.keys(answers.R).length+Object.keys(answers.L).length;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('show');}
+function submitExam(){
+  clearInterval(timerInterval);
+  if(curAudio){curAudio.pause();curAudio=null;}
+  sessionStorage.setItem('examAnswers',JSON.stringify(answers));
+  sessionStorage.setItem('answerKey',JSON.stringify(ANSWER_KEY));
+  sessionStorage.setItem('examSet','501'); window.location.href='result.html';
+}
+buildNumBtns();
+</script>
+</body>
+</html>

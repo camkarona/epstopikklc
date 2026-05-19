@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KLC EPS-TOPIK 연습 APP</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Sans+Khmer:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue-dark:   #1A3A6B;
+    --blue-main:   #1B4FD8;
+    --blue-light:  #2D6BE4;
+    --blue-glow:   rgba(27,79,216,0.12);
+    --accent:      #B8860B;
+    --accent-light:#D4A017;
+    --white:       #FFFFFF;
+    --off-white:   #F5F6F8;
+    --gray-light:  #E2E6ED;
+    --gray-mid:    #8A96A8;
+    --gray-dark:   #4A5568;
+    --text-main:   #1A202C;
+    --text-sub:    #4A5568;
+    --bg-main:     #F0F2F5;
+    --bg-mid:      #E4E8EF;
+    --card-bg:     rgba(255,255,255,0.85);
+    --card-border: rgba(0,0,0,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+  }
+
+  /* ── 배경 효과 ── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  }
+  .bg-layer::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 15% 40%, rgba(200,210,230,0.6) 0%, transparent 65%),
+      radial-gradient(ellipse 60% 70% at 85% 20%, rgba(210,220,235,0.5) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 50% 95%, rgba(180,195,220,0.3) 0%, transparent 60%),
+      linear-gradient(150deg, #E8ECF2 0%, #DDE2EB 35%, #E4E8EF 65%, #D8DDE8 100%);
+  }
+  /* 격자 패턴 */
+  .bg-layer::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(100,120,160,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(100,120,160,0.07) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  /* 떠다니는 원 장식 */
+  .orb {
+    position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none;
+    animation: float 8s ease-in-out infinite;
+  }
+  .orb-1 { width: 380px; height: 380px; background: rgba(150,170,210,0.2); top: -100px; left: -80px; animation-delay: 0s; }
+  .orb-2 { width: 280px; height: 280px; background: rgba(180,195,220,0.18); bottom: -60px; right: 10%; animation-delay: -3s; }
+  .orb-3 { width: 200px; height: 200px; background: rgba(160,180,215,0.15); top: 40%; right: -60px; animation-delay: -5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-20px); }
+  }
+
+  /* ── 메인 컨테이너 ── */
+  .main {
+    position: relative; z-index: 1;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+    padding: 2vh 2vw;
+  }
+
+  /* ── 상단 로고 배지 ── */
+  .klc-badge {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 50px;
+    padding: 8px 24px;
+    margin-bottom: 2vh;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    animation: fadeDown 0.6s ease both;
+  }
+  .klc-badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--blue-main);
+    box-shadow: 0 0 8px rgba(27,79,216,0.5);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
+  }
+  .klc-badge span {
+    font-size: 0.85rem; font-weight: 500; letter-spacing: 0.12em;
+    color: var(--gray-dark); text-transform: uppercase;
+  }
+
+  /* ── 메인 타이틀 ── */
+  .title-wrap {
+    text-align: center;
+    margin-bottom: 1.5vh;
+    animation: fadeUp 0.7s ease 0.1s both;
+  }
+  .title-main {
+    font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--text-sub);
+    margin-bottom: 0.2em;
+  }
+  .title-app {
+    font-size: clamp(2rem, 3.8vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--blue-dark);
+    line-height: 1.1;
+    margin-bottom: 0.3em;
+  }
+  .title-by {
+    font-size: clamp(0.85rem, 1.2vw, 1rem);
+    font-weight: 300;
+    color: var(--gray-mid);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.1em;
+  }
+  .title-klc-name {
+    font-size: clamp(1rem, 1.6vw, 1.3rem);
+    font-weight: 700;
+    color: var(--blue-main);
+    letter-spacing: 0.04em;
+  }
+  .title-klc-sub {
+    font-size: clamp(0.75rem, 1vw, 0.9rem);
+    font-weight: 300;
+    color: var(--gray-mid);
+    letter-spacing: 0.03em;
+  }
+
+  /* ── 구분선 ── */
+  .divider {
+    width: 120px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue-main), var(--blue-light), transparent);
+    margin: 2vh auto;
+    opacity: 0.4;
+    animation: fadeUp 0.7s ease 0.2s both;
+  }
+
+  /* ── 시험 카드 그리드 ── */
+  .card-grid {
+    display: flex; gap: 1.5vw;
+    margin-bottom: 2vh;
+    animation: fadeUp 0.7s ease 0.3s both;
+  }
+
+  .exam-card {
+    width: clamp(160px, 14vw, 200px);
+    background: rgba(255,255,255,0.80);
+    border: 1px solid rgba(0,0,0,0.09);
+    border-radius: 16px;
+    padding: 2vh 1.5vw;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .exam-card::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(27,79,216,0.08), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .exam-card:hover::before { opacity: 1; }
+  .exam-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(27,79,216,0.3);
+    box-shadow: 0 16px 40px rgba(27,79,216,0.15), 0 0 0 1px rgba(27,79,216,0.15);
+  }
+
+  .exam-card.free {
+    border-color: rgba(27,79,216,0.25);
+    background: rgba(235,241,255,0.90);
+  }
+  .exam-card.free:hover {
+    box-shadow: 0 16px 40px rgba(27,79,216,0.2), 0 0 0 1px var(--blue-main);
+  }
+
+  .exam-card.locked {
+    cursor: default; opacity: 0.45;
+  }
+  .exam-card.locked:hover { transform: none; box-shadow: none; }
+
+  .card-num {
+    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+    font-weight: 900;
+    color: var(--blue-dark);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card-label {
+    font-size: 0.7rem; font-weight: 500;
+    color: var(--gray-mid); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .card-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .badge-free {
+    background: rgba(27,79,216,0.1);
+    color: var(--blue-main);
+    border: 1px solid rgba(27,79,216,0.25);
+  }
+  .badge-lock {
+    background: rgba(0,0,0,0.04);
+    color: var(--gray-mid);
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  .lock-icon { font-size: 1rem; margin-bottom: 6px; display: block; }
+
+  /* ── 시작 버튼 ── */
+  .start-btn {
+    position: relative;
+    padding: 1.4vh 5vw;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--blue-main), var(--blue-light));
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(27,79,216,0.4), 0 0 0 1px rgba(58,123,255,0.3);
+    margin-bottom: 2vh;
+    animation: fadeUp 0.7s ease 0.4s both;
+    overflow: hidden;
+  }
+  .start-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--blue-light), #5A9FFF);
+    opacity: 0; transition: opacity 0.3s;
+    border-radius: 50px;
+  }
+  .start-btn:hover::before { opacity: 1; }
+  .start-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(27,79,216,0.5), 0 0 0 1px var(--blue-light);
+  }
+  .start-btn:active { transform: translateY(0); }
+  .start-btn span { position: relative; z-index: 1; }
+
+  /* 버튼 shimmer */
+  .start-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%   { left: -100%; }
+    100% { left: 200%; }
+  }
+
+  /* ── 시험 정보 라인 ── */
+  .info-row {
+    display: flex; gap: 2vw; align-items: center;
+    margin-bottom: 2.5vh;
+    animation: fadeUp 0.7s ease 0.45s both;
+  }
+  .info-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(0,0,0,0.09);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.75rem;
+    color: var(--gray-dark);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .info-chip .icon { font-size: 0.85rem; }
+
+  /* ── 애니메이션 ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── 하단 크레딧 ── */
+  .credit {
+    position: fixed; bottom: 2.5vh; left: 50%; transform: translateX(-50%);
+    text-align: center;
+    animation: fadeUp 0.7s ease 0.5s both;
+    z-index: 1;
+  }
+  .credit-line {
+    font-size: 0.72rem;
+    color: var(--gray-mid);
+    letter-spacing: 0.08em;
+  }
+  .credit-name {
+    font-family: 'Noto Sans Khmer', 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--blue-dark);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── 전체화면 버튼 (우상단) ── */
+  .fullscreen-btn {
+    position: fixed; top: 2vh; right: 2vw; z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 8px;
+    color: var(--gray-dark);
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .fullscreen-btn:hover {
+    background: rgba(255,255,255,0.95);
+    color: var(--blue-dark);
+    border-color: rgba(27,79,216,0.2);
+  }
+
+  /* 카드 선택 상태 */
+  .exam-card.selected {
+    border-color: var(--blue-main) !important;
+    background: rgba(220,230,255,0.95) !important;
+    box-shadow: 0 0 0 2px var(--blue-main), 0 12px 32px rgba(27,79,216,0.18) !important;
+  }
+</style>
+</head>
+<body>
+
+<!-- 배경 레이어 -->
+<div class="bg-layer"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- 전체화면 버튼 -->
+<button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ 전체화면</button>
+
+<!-- 메인 -->
+<div class="main">
+
+  <!-- KLC 배지 -->
+  <div class="klc-badge">
+    <span class="dot"></span>
+    <span>한국어전문학교 · Korean Language Center</span>
+    <span class="dot"></span>
+  </div>
+
+  <!-- 타이틀 -->
+  <div class="title-wrap">
+    <div class="title-main">고용허가제 한국어능력시험</div>
+    <div class="title-app">EPS-TOPIK 연습 APP</div>
+    <div class="title-by">by</div>
+    <div class="title-klc-name">KLC</div>
+    <div class="title-klc-sub">한국어전문학교 · Korean Language Center</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 시험 정보 -->
+  <div class="info-row">
+    <div class="info-chip"><span class="icon">⏱</span> 시험 시간 50분</div>
+    <div class="info-chip"><span class="icon">📝</span> 40문항 (읽기 20 + 듣기 20)</div>
+  </div>
+
+  <!-- 시험 세트 카드 -->
+  <div class="card-grid">
+    <div class="exam-card free selected" id="card-501" onclick="selectCard(501)">
+      <div class="card-num">501</div>
+      <div class="card-label">2025 기출</div>
+      <div class="card-badge badge-free">✓ 무료</div>
+    </div>
+    <div class="exam-card locked">
+      <span class="lock-icon">🔒</span>
+      <div class="card-num">502</div>
+      <div class="card-label">준비중</div>
+      <div class="card-badge badge-lock">준비중</div>
+    </div>
+    <div class="exam-card locked">
+      <span class="lock-icon">🔒</span>
+      <div class="card-num">503</div>
+      <div class="card-label">준비중</div>
+      <div class="card-badge badge-lock">준비중</div>
+    </div>
+    <div class="exam-card locked">
+      <span class="lock-icon">🔒</span>
+      <div class="card-num">504</div>
+      <div class="card-label">준비중</div>
+      <div class="card-badge badge-lock">준비중</div>
+    </div>
+    <div class="exam-card locked">
+      <span class="lock-icon">🔒</span>
+      <div class="card-num">505</div>
+      <div class="card-label">준비중</div>
+      <div class="card-badge badge-lock">준비중</div>
+    </div>
+  </div>
+
+  <!-- 시작 버튼 -->
+  <button class="start-btn" onclick="startExam()">
+    <span>▶&nbsp;&nbsp;501번 시험 시작</span>
+  </button>
+
+</div>
+
+<!-- 하단 크레딧 -->
+<div class="credit">
+  <div class="credit-line">DEVELOPED BY</div>
+  <div class="credit-name">លោកគ្រូ ករុណា</div>
+</div>
+
+<script>
+  let selectedSet = 501;
+
+  function selectCard(num) {
+    // 현재는 501만 선택 가능
+    if (num !== 501) return;
+    document.querySelectorAll('.exam-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-' + num).classList.add('selected');
+    selectedSet = num;
+    document.querySelector('.start-btn span').textContent = '▶\u00A0\u00A0' + num + '번 시험 시작';
+  }
+
+  function startExam() {
+    window.location.href = selectedSet + 'exam.html';
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  // 페이지 로드 시 전체화면 유도 (태블릿)
+  document.addEventListener('click', function tryFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+    document.removeEventListener('click', tryFullscreen);
+  }, { once: true });
+</script>
+</body>
+</html>
